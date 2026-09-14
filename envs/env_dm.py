@@ -37,6 +37,7 @@ class DMEnv(base_env.BaseEnv):
 
 
     def step(self, action):
+        print("ENV_DM: ", action)
         time_step = self._env.step(action.cpu().numpy())
     
         obs = self._convert_obs(time_step.observation)

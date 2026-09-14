@@ -252,6 +252,8 @@ class BaseAgent(torch.nn.Module):
         for i in range(num_steps):
             action, action_info = self._decide_action(self._curr_obs, self._curr_info)
             self._record_data_pre_step(self._curr_obs, self._curr_info, action, action_info)
+            print("Action: ", action)
+            print("Obs: ", self._curr_obs)
 
             next_obs, r, done, next_info = self._step_env(action)
             self._train_return_tracker.update(r, done)
@@ -261,6 +263,7 @@ class BaseAgent(torch.nn.Module):
 
             if done != base_env.DoneFlags.NULL.value:  
                 self._curr_obs, self._curr_info = self._env.reset()
+                print("RESET: ", self._curr_obs, self._curr_info)
             self._exp_buffer.inc()
 
         return
