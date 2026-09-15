@@ -20,6 +20,7 @@ class DistributionGaussianDiagBuilder(torch.nn.Module):
         torch.nn.init.uniform_(self._mean_net.weight, -init_output_scale, init_output_scale)
         torch.nn.init.zeros_(self._mean_net.bias)
 
+        # Deciding whether the std is predict from the network (e.g., learnable) or a constant
         logstd = np.log(init_std)
         if (self._std_type == StdType.FIXED):
             self._logstd_net = torch.nn.Parameter(torch.zeros(out_size, requires_grad=False, dtype=torch.float32), requires_grad=False)

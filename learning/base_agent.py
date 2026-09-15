@@ -1,5 +1,6 @@
 import abc
 import enum
+import tqdm
 import gymnasium as gym
 import numpy as np
 import os
@@ -249,11 +250,9 @@ class BaseAgent(torch.nn.Module):
         return
 
     def _rollout_train(self, num_steps):
-        for i in range(num_steps):
+        for i in tqdm.tqdm(range(num_steps), desc="Rollout training...", leave=False):
             action, action_info = self._decide_action(self._curr_obs, self._curr_info)
             self._record_data_pre_step(self._curr_obs, self._curr_info, action, action_info)
-            print("Action: ", action)
-            print("Obs: ", self._curr_obs)
 
             next_obs, r, done, next_info = self._step_env(action)
             self._train_return_tracker.update(r, done)
@@ -263,7 +262,6 @@ class BaseAgent(torch.nn.Module):
 
             if done != base_env.DoneFlags.NULL.value:  
                 self._curr_obs, self._curr_info = self._env.reset()
-                print("RESET: ", self._curr_obs, self._curr_info)
             self._exp_buffer.inc()
 
         return
@@ -274,7 +272,8 @@ class BaseAgent(torch.nn.Module):
         
         self._curr_obs, self._curr_info = self._env.reset()
 
-        for e in range(num_episodes):
+
+        for e in tqdm.tqdm(range(num_episodes), desc="Rollout Testing...", leave=False):
             curr_ret = 0.0
             curr_ep_len = 0
             while True:

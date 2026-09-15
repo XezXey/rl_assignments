@@ -130,20 +130,20 @@ class BCAgent(base_agent.BaseAgent):
         # Normalize the observation
         # print(self._obs_norm)
         norm_obs = self._obs_norm.normalize(obs)
-        # print(obs, norm_obs)
-        # print(obs.shape, norm_obs.shape)
-        # print(torch.mean(obs), torch.std(obs))
-        # print(torch.mean(norm_obs), torch.std(norm_obs))
-        # print(self._obs_norm.get_mean(), self._obs_norm.get_std())
-        # exit()
-
+        norm_action_dist = self._model.eval_actor(norm_obs)
         ## a) sample an action from the policy
         # placeholder
+        # a_space = self._env.get_action_space()
         # a = torch.zeros(a_space.shape, device=self._device)
 
-        # a_space = self._env.get_action_space()
-        a_dist = self._model.eval_actor(norm_obs)
-        norm_a = a_dist.sample()
+        if (self._mode == base_agent.AgentMode.TRAIN):
+            norm_a = norm_action_dist.sample()
+        elif (self._mode == base_agent.AgentMode.TEST):
+            # During testing, we don't add noise
+            norm_a = norm_action_dist.mode
+        else:
+            assert(False), "Unsupported agent mode: {}".format(self._mode)
+
         norm_a = norm_a.detach()
         a = self._a_norm.unnormalize(norm_a)
         
@@ -151,12 +151,11 @@ class BCAgent(base_agent.BaseAgent):
         # placeholder
         # a_space = self._env.get_action_space()
         # expert_a = torch.zeros(a_space.shape, device=self._device)
+
         #NOTE: _eval_expert() takes unnormalized action, return unnormalized action
         expert_a = self._eval_expert(obs)
-        expert_a = self._a_norm.unnormalize(expert_a)
 
         a_info = {
-            # "expert_a": expert_a
             "expert_a": expert_a
         }
         return a, a_info
@@ -166,12 +165,6 @@ class BCAgent(base_agent.BaseAgent):
         TODO 1.2: Implement code to calculate the loss for training the policy.
         '''
         # placeholder
-        # print(norm_obs.shape, norm_expert_a.shape)
-        # print(norm_obs, norm_expert_a)
-        # loss = torch.zeros(1, device=self._device)
-        # print(torch.max(norm_expert_a, dim=-1))
         a_dist = self._model.eval_actor(norm_obs)
-        # loss = torch.sum(a_dist.log_prob(self._a_norm.unnormalize(norm_expert_a)))
-        loss = torch.sum(a_dist.log_prob(norm_expert_a))
-        # loss = torch.mean(a_dist.log_prob(norm_expert_a))
+        loss = torch.mean(-a_dist.log_prob(norm_expert_a))
         return loss

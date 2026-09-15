@@ -10,6 +10,9 @@ import learning.agent_builder as agent_builder
 import util.mp_util as mp_util
 import util.util as util
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 def set_np_formatting():
     np.set_printoptions(edgeitems=30, infstr='inf',
                         linewidth=4000, nanstr='nan', precision=2,
